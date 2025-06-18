@@ -7,42 +7,58 @@
 import Observation
 import SwiftUI
 
-struct ExpenseItems : Identifiable {
+import Foundation
+
+struct ExpenseItem: Identifiable, Codable {
     let id = UUID()
-    let name : String
-    let type : String
-    let amount : Double
-}
-@Observable
-class Expenses  {
-    var items = [ExpenseItems]()
-}
-struct ContentView: View {
-    @State private var expenses = Expenses()
-    var body: some View {
-        NavigationStack{
-            List{
-                ForEach(expenses.items , id:\.id){item in
-                    Text(item.name)
-                }
-                .onDelete(perform: DeleteButton)
-            }
-            .navigationTitle("Expense_Tracker")
-            .toolbar{
-                Button("Add Expense ", systemImage:"plus"){
-                    let expense = ExpenseItems(name:"Test" , type :"Personal" , amount:5)
-                    expenses.items.append(expense)
-                    
-                }
-            }
-            }
-        }
-    func DeleteButton(at offsets:IndexSet){
-        expenses.items.remove(atOffsets: offsets)
-        
-    }
+    var name: String
+    var type: String
+    var amount: Double
 }
 
+@Observable
+class Expenses {
+    var items: [ExpenseItem] = []
+}
+import SwiftUI
+
+struct ContentView: View {
+    @State private var expenses = Expenses()
+    @State private var showingAddView = false
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ForEach(expenses.items) { item in
+                    VStack(alignment: .leading) {
+                        Text(item.name)
+                            .font(.headline)
+                        Text(item.type)
+                            .foregroundStyle(.secondary)
+                        Text(item.amount, format: .currency(code: "INR"))
+                            .fontWeight(.bold)
+                    }
+                }
+                .onDelete(perform: deleteItem)
+            }
+            .navigationTitle("MoneyMap")
+            .toolbar {
+                Button {
+                    showingAddView = true
+                } label: {
+                    Label("Add Expense", systemImage: "plus")
+                }
+            }
+            .sheet(isPresented: $showingAddView) {
+                AddView(expenses: expenses)
+            }
+        }
+    }
+
+    func deleteItem(at offsets: IndexSet) {
+        expenses.items.remove(atOffsets: offsets)
+    }
+}
 
 #Preview {
     ContentView()
